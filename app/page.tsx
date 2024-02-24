@@ -1,10 +1,14 @@
-import { Button } from "@/components/ui/button";
+'use client'
+import { useRouter } from "next/navigation";
+import { useEffect } from "react";
 
 export default function Home() {
-  return (
-   <div className="w-full h-screen flex flex-col justify-center items-center text-center gap-5">
-     <p className="text-2xl font-semibold">Learning Auth</p>
-     <Button>Submit</Button>
-   </div>
-  );
+  const navigate = useRouter();
+  const isAuthenticated = false;
+  useEffect(() => {
+    isAuthenticated
+      ? navigate.push("/dashboard")
+      : navigate.push("/auth/signin");
+  }, []);
+  return null;
 }
