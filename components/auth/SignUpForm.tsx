@@ -1,3 +1,5 @@
+"use client";
+
 import {
   Form,
   FormControl,
@@ -12,11 +14,18 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { Button } from "../ui/button";
 import { signUpSchema } from "@/schema";
-import FormError from "../FormStatus";
+import FormError, { FormStatusType } from "../FormStatus";
+import { useEffect, useState, useTransition } from "react";
+import { AiOutlineLoading3Quarters } from "react-icons/ai";
+import axios from "@/lib/axios";
+import { useRouter } from "next/navigation";
 
 type Props = {};
 
 function SignUpForm({}: Props) {
+  const [status, setStatus] = useState<FormStatusType>({} as FormStatusType);
+  const [isPending, startTransition] = useTransition();
+  const router = useRouter();
   const form = useForm({
     resolver: zodResolver(signUpSchema),
     defaultValues: {
@@ -27,8 +36,32 @@ function SignUpForm({}: Props) {
   });
 
   const onSubmit = (values: z.infer<typeof signUpSchema>) => {
-    console.log(values);
+    startTransition(async () => {
+      await axios
+        .post("/register", values)
+        .then(({ data: data }) => {
+          if (data) {
+            router.push("/signin");
+          }
+        })
+        .catch(({ response }) => {
+          const key = Object.keys(response.data)[0];
+          setStatus({
+            status: Object.keys(response.data)[0],
+            message: response.data[key] as string,
+          });
+        });
+    });
   };
+
+  useEffect(() => {
+    if (status) {
+      form.setError(status.status as any, {
+        message: status.message,
+      });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [status]);
 
   return (
     <Form {...form}>
@@ -40,7 +73,7 @@ function SignUpForm({}: Props) {
             <FormItem>
               <FormLabel>Username</FormLabel>
               <FormControl>
-                <Input placeholder="Username" {...field} />
+                <Input placeholder="John" {...field} disabled={isPending} />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -57,6 +90,7 @@ function SignUpForm({}: Props) {
                   placeholder="john.doe@example.com"
                   type="email"
                   {...field}
+                  disabled={isPending}
                 />
               </FormControl>
               <FormMessage />
@@ -70,14 +104,24 @@ function SignUpForm({}: Props) {
             <FormItem>
               <FormLabel>Password</FormLabel>
               <FormControl>
-                <Input type="password" placeholder="••••••••" {...field} />
+                <Input
+                  type="password"
+                  placeholder="••••••••"
+                  {...field}
+                  disabled={isPending}
+                />
               </FormControl>
               <FormMessage />
             </FormItem>
           )}
         />
-        <FormError />
-        <Button className="w-full">Sign Up</Button>
+        <FormError status={status.status} message={status.message} />
+        <Button type="submit" className="w-full" disabled={isPending}>
+          {isPending && (
+            <AiOutlineLoading3Quarters className="mr-2 h-4 w-4 animate-spin" />
+          )}
+          <span>Create an Account</span>
+        </Button>
       </form>
     </Form>
   );
