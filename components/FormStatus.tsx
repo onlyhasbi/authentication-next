@@ -4,9 +4,15 @@ import {
 } from "@radix-ui/react-icons";
 import React from "react";
 
-type Props = { message: string; status: string };
+export type FormStatusType = { message: string; status: string };
 
-function FormStatus({ message, status }: Partial<Props>) {
+function FormStatus({ message, status }: Partial<FormStatusType>) {
+  const acceptedStatus = ["success", "error"];
+
+  if (status && !acceptedStatus.includes(status)) {
+    return null;
+  }
+
   const isStatus = status === "success";
 
   if (!message || !status) {
