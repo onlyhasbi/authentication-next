@@ -1,5 +1,14 @@
 "use client";
 
+import { authenticate } from "@/action/signin";
+import { signInSchema } from "@/schema";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useState, useTransition } from "react";
+import { useForm } from "react-hook-form";
+import { AiOutlineLoading3Quarters } from "react-icons/ai";
+import { z } from "zod";
+import FormError, { FormStatusType } from "../FormStatus";
+import { Button } from "../ui/button";
 import {
   Form,
   FormControl,
@@ -8,72 +17,46 @@ import {
   FormLabel,
   FormMessage,
 } from "../ui/form";
-import { AiOutlineLoading3Quarters } from "react-icons/ai";
-import FormError, { FormStatusType } from "../FormStatus";
 import { Input } from "../ui/input";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm } from "react-hook-form";
-import { z } from "zod";
-import { Button } from "../ui/button";
-import { signInSchema } from "@/schema";
-import { useEffect, useState, useTransition } from "react";
-import axios from "@/lib/axios";
-import { useRouter } from "next/navigation";
 
 type Props = {};
 
 function SignInForm({}: Props) {
   const [status, setStatus] = useState<FormStatusType>({} as FormStatusType);
   const [isPending, startTransition] = useTransition();
-  const router = useRouter();
+
   const form = useForm({
     resolver: zodResolver(signInSchema),
     defaultValues: {
-      username: "",
+      email: "",
       password: "",
     },
   });
 
-  const onSubmit = (values: z.infer<typeof signInSchema>) => {
+  const onSubmit = (value: z.infer<typeof signInSchema>) => {
     startTransition(async () => {
-      await axios
-        .post("/auth", values)
-        .then(({ data: { data } }) => {
-          if (data) {
-            localStorage.setItem("authenticated", JSON.stringify(data));
-            router.push("/dashboard");
-          }
-        })
-        .catch(({ response }) => {
-          const key = Object.keys(response.data)[0];
-          setStatus({
-            status: Object.keys(response.data)[0],
-            message: response.data[key] as string,
-          });
-        });
+      await authenticate(value).then((res) =>
+        setStatus({ status: "error", message: res as string })
+      );
     });
   };
-
-  useEffect(() => {
-    if (status) {
-      form.setError(status.status as any, {
-        message: status.message,
-      });
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [status]);
 
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
         <FormField
           control={form.control}
-          name="username"
+          name="email"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Username</FormLabel>
+              <FormLabel>Email</FormLabel>
               <FormControl>
-                <Input placeholder="John" {...field} disabled={isPending} />
+                <Input
+                  type="email"
+                  placeholder="john.doe@gmail.com"
+                  {...field}
+                  disabled={isPending}
+                />
               </FormControl>
               <FormMessage />
             </FormItem>

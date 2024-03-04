@@ -1,5 +1,14 @@
 "use client";
 
+import { register } from "@/action/signup";
+import { signUpSchema } from "@/schema";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useEffect, useState, useTransition } from "react";
+import { useForm } from "react-hook-form";
+import { AiOutlineLoading3Quarters } from "react-icons/ai";
+import { z } from "zod";
+import FormError, { FormStatusType } from "../FormStatus";
+import { Button } from "../ui/button";
 import {
   Form,
   FormControl,
@@ -9,23 +18,12 @@ import {
   FormMessage,
 } from "../ui/form";
 import { Input } from "../ui/input";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm } from "react-hook-form";
-import { z } from "zod";
-import { Button } from "../ui/button";
-import { signUpSchema } from "@/schema";
-import FormError, { FormStatusType } from "../FormStatus";
-import { useEffect, useState, useTransition } from "react";
-import { AiOutlineLoading3Quarters } from "react-icons/ai";
-import axios from "@/lib/axios";
-import { useRouter } from "next/navigation";
 
 type Props = {};
 
 function SignUpForm({}: Props) {
   const [status, setStatus] = useState<FormStatusType>({} as FormStatusType);
   const [isPending, startTransition] = useTransition();
-  const router = useRouter();
   const form = useForm({
     resolver: zodResolver(signUpSchema),
     defaultValues: {
@@ -37,20 +35,12 @@ function SignUpForm({}: Props) {
 
   const onSubmit = (values: z.infer<typeof signUpSchema>) => {
     startTransition(async () => {
-      await axios
-        .post("/register", values)
-        .then(({ data: data }) => {
-          if (data) {
-            router.push("/signin");
-          }
-        })
-        .catch(({ response }) => {
-          const key = Object.keys(response.data)[0];
-          setStatus({
-            status: Object.keys(response.data)[0],
-            message: response.data[key] as string,
-          });
-        });
+      await register(values).then((res: any) => {
+        if (res) {
+          const key = Object?.keys(res)[0];
+          setStatus({ status: key, message: res[key] });
+        }
+      });
     });
   };
 

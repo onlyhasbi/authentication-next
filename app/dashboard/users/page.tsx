@@ -1,23 +1,15 @@
 "use client";
+
 import { Button } from "@/components/ui/button";
-import { useRouter } from "next/navigation";
-import React from "react";
+import { signout } from "@/action/signout";
 
 type Props = {};
 
 function Users({}: Props) {
-  const router = useRouter();
   return (
     <div>
       <label>Users</label>
-      <Button
-        onClick={() => {
-          localStorage.removeItem("authenticated");
-          router.push("/");
-        }}
-      >
-        Logout
-      </Button>
+      <Button onClick={async () => await signout()}>Sign Out</Button>
     </div>
   );
 }
