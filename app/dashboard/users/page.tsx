@@ -1,15 +1,23 @@
-"use client";
+import { signOut } from "@/auth";
 
-import { Button } from "@/components/ui/button";
-import { signout } from "@/action/signout";
-
-type Props = {};
-
-function Users({}: Props) {
+async function Users() {
   return (
     <div>
       <label>Users</label>
-      <Button onClick={async () => await signout()}>Sign Out</Button>
+      <form
+        action={async () => {
+          "use server";
+
+          await signOut();
+        }}
+      >
+        <button
+          type="submit"
+          className="bg-blue-600 hover:bg-blue-700 rounded px-3 py-2 text-white text-sm"
+        >
+          Sign Out
+        </button>
+      </form>
     </div>
   );
 }
