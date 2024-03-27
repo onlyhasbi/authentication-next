@@ -13,21 +13,21 @@ function FormStatus({ message, status }: Partial<FormStatusType>) {
     return null;
   }
 
-  const isStatus = status === "success";
-
   if (!message || !status) {
     return null;
   }
 
+  const isSuccess = status === "success";
+
   return (
     <div
       className={`${
-        isStatus
+        isSuccess
           ? "border bg-emerald-100 border-emerald-200 text-emerald-500"
           : "border bg-destructive/10 border-destructive/20 text-destructive"
       } rounded p-3 flex gap-x-2 items-center text-sm `}
     >
-      {isStatus ? (
+      {isSuccess ? (
         <CheckCircledIcon className="w-4 h-4" />
       ) : (
         <ExclamationTriangleIcon className="w-4 h-4" />

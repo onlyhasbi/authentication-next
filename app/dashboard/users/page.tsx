@@ -1,16 +1,13 @@
-import { signOut } from "@/auth";
+"use client";
 
-async function Users() {
+import { Button } from "@/components/ui/button";
+import { signout } from "@/action/auth";
+
+function Users() {
   return (
     <div>
       <label>Users</label>
-      <form
-        action={async () => {
-          "use server";
-
-          await signOut();
-        }}
-      >
+      <form action={signout}>
         <button
           type="submit"
           className="bg-blue-600 hover:bg-blue-700 rounded px-3 py-2 text-white text-sm"

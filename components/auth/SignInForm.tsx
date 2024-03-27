@@ -3,11 +3,11 @@
 import { authenticate } from "@/action/signin";
 import { signInSchema } from "@/schema";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useState, useTransition } from "react";
+import { useEffect, useState, useTransition } from "react";
 import { useForm } from "react-hook-form";
 import { AiOutlineLoading3Quarters } from "react-icons/ai";
 import { z } from "zod";
-import FormError, { FormStatusType } from "../FormStatus";
+import FormStatus, { FormStatusType } from "../FormStatus";
 import { Button } from "../ui/button";
 import {
   Form,
@@ -18,12 +18,12 @@ import {
   FormMessage,
 } from "../ui/form";
 import { Input } from "../ui/input";
+import { useSearchParams } from "next/navigation";
 
-type Props = {};
-
-function SignInForm({}: Props) {
+function SignInForm() {
   const [status, setStatus] = useState<FormStatusType>({} as FormStatusType);
   const [isPending, startTransition] = useTransition();
+  const params = useSearchParams();
 
   const form = useForm({
     resolver: zodResolver(signInSchema),
@@ -33,11 +33,26 @@ function SignInForm({}: Props) {
     },
   });
 
+  useEffect(() => {
+    if (params.get("error") === "OAuthAccountNotLinked") {
+      setStatus({
+        status: "error",
+        message: "Use different provider to login",
+      });
+    }
+  }, [params]);
+
   const onSubmit = (value: z.infer<typeof signInSchema>) => {
     startTransition(async () => {
-      await authenticate(value).then((res) =>
-        setStatus({ status: "error", message: res as string })
-      );
+      await authenticate(value).then((res) => {
+        if (res?.error) {
+          setStatus({ status: "error", message: res.error });
+        }
+
+        if (res?.success) {
+          setStatus({ status: "success", message: res.success });
+        }
+      });
     });
   };
 
@@ -80,7 +95,7 @@ function SignInForm({}: Props) {
             </FormItem>
           )}
         />
-        <FormError status={status.status} message={status.message} />
+        <FormStatus status={status.status} message={status.message} />
         <Button type="submit" className="w-full" disabled={isPending}>
           {isPending && (
             <AiOutlineLoading3Quarters className="mr-2 h-4 w-4 animate-spin" />
