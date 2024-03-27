@@ -1,15 +1,17 @@
 "use client";
 
+import { isAuthenticated } from "@/action/auth";
+import loading from "@/assets/common/loading.gif";
+import Container from "@/components/Container";
 import { Button } from "@/components/ui/button";
-import { isAuthenticated } from "@/data/auth";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { useEffect, useState, useTransition } from "react";
-
-type Status = "success" | "failed" | "loading";
+import React, { useEffect, useState, useTransition } from "react";
 
 export default function Home() {
-  const [isAuth, setIsAuth] = useState<Status>("loading");
+  const route = useRouter();
   const [isPending, startTransition] = useTransition();
+  const [isAuth, setIsAuth] = useState("loading");
 
   useEffect(() => {
     startTransition(async () => {
@@ -20,20 +22,22 @@ export default function Home() {
     });
   }, []);
 
-  if (["success", "failed"].includes(isAuth) && !isPending) {
+  if (["success", "failed"].includes(isAuth)) {
     return (
-      <div className="flex justify-center items-center h-full">
-        <div className="text-center space-y-2">
+      <Container>
+        <React.Fragment>
           <h3 className="text-2xl font-semibold">Main Page</h3>
-          <AuthButton isAuth={isAuth} />
-        </div>
-      </div>
+          <AuthButton isAuth={isAuth as string} />
+        </React.Fragment>
+      </Container>
     );
   }
 
-  if (!isPending || isAuth === "loading") {
-    return null;
-  }
+  return (
+    <Container>
+      <Image src={loading} width={50} height={50} alt="loading-gif" />
+    </Container>
+  );
 }
 
 function AuthButton({ isAuth }: { isAuth: string }) {
